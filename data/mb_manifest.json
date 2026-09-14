@@ -1,0 +1,25 @@
+{
+  "dataset": "MaleCNS v1.0 (Berg et al. 2025 / Nern et al. 2024), CC BY 4.0",
+  "mirror": "github.com/YijieYin/connectome_data_prep",
+  "counts": {
+    "pn": 682,
+    "kc": 1200,
+    "mbon": 97,
+    "dan": 332
+  },
+  "edges": {
+    "pn_kc": 7182,
+    "kc_mbon": 18183,
+    "dan_mbon": 3123,
+    "mbon_mbon": 1606
+  },
+  "synapses": {
+    "pn_kc": 123730,
+    "kc_mbon": 135531,
+    "dan_mbon": 39616,
+    "mbon_mbon": 26259
+  },
+  "mbon_approach": 56,
+  "mbon_avoid": 41,
+  "selection": "ALPN by class; KCs with both ALPN input and MBON output, evenly sampled across pathway-involvement rank; all MBONs; all PAM+PPL1. KC->KC excluded (see extract.py). No behavioural measure used at any point."
+}

@@ -1,0 +1,3 @@
+numpy>=1.24
+# only needed for build_your_own_circuit.py:
+# pyarrow>=15

@@ -1,0 +1,180 @@
+<title>Mushroom Body</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+:root{
+  --excite:#E2893A; --inhibit:#2FA39A; --dopamine:#A971D6; --alert:#C8553D;
+  --specimen:#070A0E;
+  --ground:#EDE9E1; --surface:#FFFFFF; --sunk:#E3DED4;
+  --ink:#16191E; --muted:#6A6C71; --rule:#D6D1C7; --rule-strong:#B9B3A6;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0E1217; --surface:#161B21; --sunk:#0A0E12;
+  --ink:#E4E8EC; --muted:#8A9198; --rule:#242B33; --rule-strong:#36404A;}}
+:root[data-theme="dark"]{
+  --ground:#0E1217; --surface:#161B21; --sunk:#0A0E12;
+  --ink:#E4E8EC; --muted:#8A9198; --rule:#242B33; --rule-strong:#36404A;}
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--ink);
+  font:400 14px/1.55 "IBM Plex Sans",system-ui,sans-serif; -webkit-font-smoothing:antialiased;}
+.wrap{max-width:1180px; margin:0 auto; padding-block:22px 40px; padding-inline:16px;}
+.plate{display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px 26px; margin-bottom:14px;}
+.plate h1{margin:0; font:700 clamp(19px,2.5vw,26px)/1.05 "IBM Plex Sans Condensed",sans-serif; text-wrap:balance;}
+.plate .sub{margin:2px 0 0; color:var(--muted); font-size:13px; max-width:58ch;}
+.spec{margin-left:auto; display:flex; gap:18px;}
+.spec div{text-align:right}
+.spec dt{font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 3px;}
+.spec dd{margin:0; font:600 17px/1 "IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;}
+
+.grid{display:grid; grid-template-columns:minmax(0,1.45fr) minmax(0,1fr); gap:14px;}
+@media (max-width:840px){.grid{grid-template-columns:1fr}}
+
+.stage{position:relative; background:var(--specimen); border:1px solid var(--rule);
+  border-radius:3px; overflow:hidden; aspect-ratio:5/4; min-height:280px;}
+.stage canvas{display:block; width:100%; height:100%; touch-action:none;}
+.stage .tag,.stage .key{position:absolute; z-index:2; pointer-events:none;
+  font:500 10px/1.8 "IBM Plex Mono",monospace; letter-spacing:.1em; text-transform:uppercase; color:#7C848D;}
+.stage .tag{left:12px; top:10px;}
+.stage .key{left:12px; bottom:10px;}
+.sw{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:0;}
+
+.panel{display:flex; flex-direction:column; gap:12px; min-width:0;}
+.card{background:var(--surface); border:1px solid var(--rule); border-radius:3px; padding:12px 13px;}
+.card h2{margin:0 0 9px; font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted);}
+#curve{display:block; width:100%; height:150px;}
+
+.odour{display:flex; align-items:center; gap:9px; margin-bottom:8px;}
+.odour:last-child{margin-bottom:0}
+.odour b{font:500 11px/1 "IBM Plex Mono",monospace; width:64px; flex:none; letter-spacing:.04em;}
+.meter{flex:1; height:16px; background:var(--sunk); position:relative; border-radius:1px; overflow:hidden;}
+.meter u{position:absolute; left:50%; top:0; bottom:0; width:1px; background:var(--rule-strong);}
+.meter i{position:absolute; top:2px; bottom:2px; display:block; border-radius:1px;}
+.odour span{font:500 12px/1 "IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+  width:58px; text-align:right; flex:none;}
+
+.controls{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;}
+button{appearance:none; background:var(--surface); color:var(--ink); border:1px solid var(--rule-strong);
+  border-radius:3px; padding:8px 13px; cursor:pointer;
+  font:500 11px/1 "IBM Plex Mono",monospace; letter-spacing:.1em; text-transform:uppercase;}
+button:hover{border-color:var(--ink)}
+button:focus-visible{outline:2px solid var(--excite); outline-offset:2px}
+button[aria-pressed="true"]{background:var(--alert); border-color:var(--alert); color:#fff}
+button.shock{border-color:var(--dopamine); color:var(--dopamine)}
+button.shock:hover{background:var(--dopamine); color:#fff}
+.stat{display:flex; justify-content:space-between; font:400 12px/1.9 "IBM Plex Mono",monospace; color:var(--muted);}
+.stat b{color:var(--ink); font-weight:500; font-variant-numeric:tabular-nums;}
+
+.notes{margin-top:26px; border-top:1px solid var(--rule); padding-top:16px;
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:22px;}
+.notes h3{margin:0 0 6px; font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted);}
+.notes p{margin:0 0 8px; font-size:13px; max-width:62ch}
+.notes a{color:var(--ink); text-decoration-color:var(--rule-strong); text-underline-offset:2px}
+.notes a:hover{text-decoration-color:var(--excite)}
+table{border-collapse:collapse; width:100%; font:400 12px/1.6 "IBM Plex Mono",monospace;
+  font-variant-numeric:tabular-nums;}
+th,td{text-align:right; padding:3px 0 3px 10px; border-bottom:1px solid var(--rule);}
+th:first-child,td:first-child{text-align:left; padding-left:0}
+th{font-weight:500; color:var(--muted); font-size:10px; letter-spacing:.1em; text-transform:uppercase;}
+.loading{position:absolute; inset:0; display:grid; place-items:center; z-index:3; background:var(--specimen);
+  color:#7C848D; font:500 11px/1 "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase;}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="plate">
+    <div>
+      <h1>Mushroom Body</h1>
+      <p class="sub">The fly's learning organ, wired as measured. Shock an odour and watch a
+        memory form &#8212; then disconnect the dopamine and watch it fail to.</p>
+    </div>
+    <dl class="spec">
+      <div><dt>Kenyon</dt><dd id="s-kc">1,200</dd></div>
+      <div><dt>Output</dt><dd id="s-mbon">97</dd></div>
+      <div><dt>Dopamine</dt><dd id="s-dan">332</dd></div>
+    </dl>
+  </header>
+
+  <div class="grid">
+    <div class="stage" id="stage">
+      <canvas id="view"></canvas>
+      <div class="tag" id="tag">present an odour</div>
+      <div class="key">
+        <span class="sw" style="background:#6E8494"></span>projection &nbsp;
+        <span class="sw" style="background:#E2893A"></span>kenyon &nbsp;
+        <span class="sw" style="background:#2FA39A"></span>output &nbsp;
+        <span class="sw" style="background:#A971D6"></span>dopamine
+      </div>
+      <div class="loading" id="loading">loading connectome</div>
+    </div>
+
+    <div class="panel">
+      <div class="card">
+        <h2>Valence &#8212; approach above zero, avoid below</h2>
+        <div class="odour"><b>geraniol</b><div class="meter"><u></u><i id="m-a"></i></div><span id="v-a">0.00</span></div>
+        <div class="odour"><b>octanol</b><div class="meter"><u></u><i id="m-b"></i></div><span id="v-b">0.00</span></div>
+      </div>
+      <div class="card">
+        <h2>Memory, trial by trial</h2>
+        <canvas id="curve"></canvas>
+      </div>
+      <div class="card">
+        <h2>State</h2>
+        <div class="stat"><span>Kenyon cells firing</span><b id="st-sparse">0</b></div>
+        <div class="stat"><span>Synapses depressed</span><b id="st-dep">0.0%</b></div>
+        <div class="stat"><span>Training trials</span><b id="st-trials">0</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="train" class="shock">Shock geraniol &#215;5</button>
+    <button id="present-a">Present geraniol</button>
+    <button id="present-b">Present octanol</button>
+    <button id="reset">Reset fly</button>
+    <button id="nodopamine" aria-pressed="false">Disconnect dopamine</button>
+    <button id="noplastic" aria-pressed="false">Freeze synapses</button>
+  </div>
+
+  <section class="notes">
+    <div>
+      <h3>The mechanism</h3>
+      <p>Kenyon cells encode odour identity sparsely &#8212; about 6% fire for any one smell.
+        When dopamine arrives at the same moment, the synapse from those cells onto the output
+        neuron is <b>depressed</b>. Punishing an odour does not make an avoidance signal shout;
+        it makes the approach signal go quiet. Which output neurons a dopamine cell can reach
+        is fixed by measured anatomy, not by a parameter.</p>
+    </div>
+    <div>
+      <h3>Measured vs modelled</h3>
+      <p><b>Measured:</b> 682 projection neurons, 1,200 Kenyon cells, 97 output neurons, 332
+        dopaminergic neurons, every connection between them, and the soma coordinates you are
+        looking at &#8212; <a href="https://male-cns.janelia.org/">MaleCNS v1.0</a>, CC BY 4.0.
+        <b>Modelled:</b> rate units rather than spikes, the learning rate and decay, the sparsity
+        imposed by winner-take-all instead of APL feedback, and which glomeruli each odour drives.</p>
+    </div>
+    <div>
+      <h3>Results, with controls</h3>
+      <table>
+        <thead><tr><th>condition</th><th>learning index</th></tr></thead>
+        <tbody>
+          <tr><td>connectome + plasticity</td><td>&#8722;1.30</td></tr>
+          <tr><td>plasticity off</td><td>0.00</td></tr>
+          <tr><td>dopamine disconnected</td><td>0.00</td></tr>
+          <tr><td>unpaired odour and shock</td><td>0.00</td></tr>
+          <tr><td>KC&#8594;MBON shuffled</td><td>&#8722;1.23</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:8px">The last row is the honest one: shuffling the Kenyon-to-output
+        wiring barely hurts. That matches the biology &#8212; this connectivity is thought to be
+        largely random in real flies, and the learning rule only needs a sparse code, not a
+        particular one.</p>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script type="module" src="app.js"></script>

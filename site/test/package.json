@@ -1,0 +1,11 @@
+{
+  "name": "flys-table",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node store.test.mjs",
+    "test:emulator": "firebase emulators:exec --only firestore --project demo-flytable 'node store.test.mjs --emulator'",
+    "serve": "python3 -m http.server 8001"
+  },
+  "devDependencies": { "firebase": "^11.6.1", "firebase-tools": "^13.0.0" }
+}

@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Anyone signed in (anonymous sign-in counts) may read the table.
+    function signedIn() { return request.auth != null; }
+
+    match /table/{docId} {
+      allow read: if signedIn();
+      // seat: writable by anyone signed in -- the transaction in the client
+      // guards against two people sitting at once. live: only the seat holder.
+      allow write: if signedIn() && (
+        docId == "seat" ||
+        (docId == "live" && get(/databases/$(database)/documents/table/seat).data.owner == request.auth.uid)
+      );
+    }
+    match /fly/brain {
+      allow read: if signedIn();
+      // only whoever holds the seat may teach the fly
+      allow write: if signedIn()
+        && get(/databases/$(database)/documents/table/seat).data.owner == request.auth.uid
+        && request.resource.data.gain is string
+        && request.resource.data.gain.size() < 40000;
+    }
+    match /queue/{uid} {
+      allow read: if signedIn();
+      // you may only add or remove yourself
+      allow write: if signedIn() && uid == request.auth.uid;
+    }
+    match /hands/{handId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && get(/databases/$(database)/documents/table/seat).data.owner == request.auth.uid;
+      allow update, delete: if false;
+    }
+  }
+}

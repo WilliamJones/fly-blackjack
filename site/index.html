@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Fly's Table</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+:root{
+  --excite:#E2893A; --inhibit:#2FA39A; --dopamine:#A971D6; --alert:#C8553D; --win:#3C9A5F;
+  --felt:#0F1A16; --felt-line:#1F3229;
+  --ground:#EDE9E1; --surface:#FFFFFF; --sunk:#E3DED4;
+  --ink:#16191E; --muted:#6A6C71; --rule:#D6D1C7; --rule-strong:#B9B3A6;
+  --card:#FBFAF6; --card-ink:#16191E; --card-red:#B8352E;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0E1217; --surface:#161B21; --sunk:#0A0E12;
+  --ink:#E4E8EC; --muted:#8A9198; --rule:#242B33; --rule-strong:#36404A;}}
+:root[data-theme="dark"]{
+  --ground:#0E1217; --surface:#161B21; --sunk:#0A0E12;
+  --ink:#E4E8EC; --muted:#8A9198; --rule:#242B33; --rule-strong:#36404A;}
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--ink);
+  font:400 14px/1.55 "IBM Plex Sans",system-ui,sans-serif; -webkit-font-smoothing:antialiased;}
+.wrap{max-width:1180px; margin:0 auto; padding-block:22px 40px; padding-inline:16px;}
+.plate{display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px 26px; margin-bottom:14px;}
+.plate h1{margin:0; font:700 clamp(19px,2.5vw,26px)/1.05 "IBM Plex Sans Condensed",sans-serif; text-wrap:balance;}
+.plate .sub{margin:2px 0 0; color:var(--muted); font-size:13px; max-width:60ch;}
+.spec{margin-left:auto; display:flex; gap:18px;}
+.spec div{text-align:right}
+.spec dt{font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:0 0 3px;}
+.spec dd{margin:0; font:600 17px/1 "IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;}
+.mono{font-family:"IBM Plex Mono",monospace}
+.label{font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);}
+
+.grid{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:14px;}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+
+/* ---- the table ---- */
+.felt{background:var(--felt); border:1px solid var(--rule); border-radius:3px; padding:16px 18px 14px;
+  color:#D9DEE3; position:relative; min-height:420px; display:flex; flex-direction:column; gap:14px;}
+.felt .label{color:#7C848D}
+.scene{position:relative; height:250px; margin:-4px -6px 2px; border-radius:3px; overflow:hidden;
+  background:radial-gradient(ellipse at 55% 70%, #16261f 0%, #0b1310 70%);}
+.scene canvas{display:block; width:100%; height:100%}
+.scenetag{position:absolute; left:10px; top:8px; font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.12em;
+  text-transform:uppercase; color:#7C848D; pointer-events:none}
+@media (max-width:860px){.scene{height:200px}}
+.row{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+.hand{display:flex; gap:6px; min-height:74px; align-items:center; flex-wrap:wrap;}
+.card{width:50px; height:72px; border-radius:4px; background:var(--card); color:var(--card-ink);
+  display:flex; flex-direction:column; justify-content:space-between; padding:5px 6px;
+  font:600 15px/1 "IBM Plex Mono",monospace; box-shadow:0 1px 2px rgba(0,0,0,.4); position:relative;}
+.card.red{color:var(--card-red)}
+.card .s{align-self:flex-end; font-size:18px}
+.card.back{background:repeating-linear-gradient(45deg,#2B3A44 0 4px,#233039 4px 8px); box-shadow:inset 0 0 0 3px #3A4A55}
+.card.new{animation:deal .28s ease-out}
+@keyframes deal{from{transform:translateY(-10px) rotate(-4deg); opacity:0}}
+.seatname{font:600 13px/1 "IBM Plex Sans",sans-serif; color:#E4E8EC; min-width:90px}
+.tot{font:500 12px/1 "IBM Plex Mono",monospace; color:#9AA3AB; min-width:52px}
+.tot b{color:#E4E8EC; font-weight:600}
+.verdict{font:500 11px/1 "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; padding:4px 8px; border-radius:2px;}
+.verdict.win{background:var(--win); color:#fff} .verdict.lose{background:var(--alert); color:#fff}
+.verdict.push{background:#3A4A55; color:#E4E8EC}
+.brainrow{display:flex; gap:3px; margin-left:auto; align-items:flex-end; height:26px}
+.brainrow i{display:block; width:5px; background:#2B3A44; border-radius:1px}
+.think{font:500 10px/1.6 "IBM Plex Mono",monospace; color:#7C848D; letter-spacing:.06em; min-height:16px}
+.think b{color:var(--excite); font-weight:600}
+.actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:auto; align-items:center}
+.status{font:500 11px/1.6 "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; color:#9AA3AB; margin-left:auto}
+.score{font:600 13px/1 "IBM Plex Mono",monospace; color:#E4E8EC; font-variant-numeric:tabular-nums}
+
+button{appearance:none; background:var(--surface); color:var(--ink); border:1px solid var(--rule-strong);
+  border-radius:3px; padding:9px 14px; cursor:pointer;
+  font:500 11px/1 "IBM Plex Mono",monospace; letter-spacing:.1em; text-transform:uppercase;}
+button:hover:not(:disabled){border-color:var(--ink)}
+button:focus-visible{outline:2px solid var(--excite); outline-offset:2px}
+button:disabled{opacity:.4; cursor:default}
+button.primary{background:var(--excite); border-color:var(--excite); color:#fff}
+button.primary:hover:not(:disabled){filter:brightness(1.08)}
+.felt button{background:#1C2A30; color:#E4E8EC; border-color:#3A4A55}
+.felt button.primary{background:var(--excite); border-color:var(--excite); color:#fff}
+
+/* ---- side panel ---- */
+.panel{display:flex; flex-direction:column; gap:12px; min-width:0}
+.cardbox{background:var(--surface); border:1px solid var(--rule); border-radius:3px; padding:12px 13px;}
+.cardbox h2{margin:0 0 9px; font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);}
+.who{display:flex; align-items:center; gap:8px; margin-bottom:8px}
+.who input{flex:1; min-width:0; padding:7px 9px; border:1px solid var(--rule-strong); border-radius:3px;
+  background:var(--ground); color:var(--ink); font:400 13px "IBM Plex Sans",sans-serif}
+.who input:focus{outline:2px solid var(--excite); outline-offset:1px}
+.list{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:4px}
+.list li{display:flex; align-items:center; gap:8px; font-size:13px; padding:5px 8px; background:var(--sunk); border-radius:2px}
+.list li .n{font:500 10px "IBM Plex Mono",monospace; color:var(--muted); width:18px}
+.list li.me{outline:1px solid var(--excite)}
+.list li.seat{background:var(--ink); color:var(--ground)}
+.list li.seat .n{color:var(--ground); opacity:.7}
+.empty{font-size:12px; color:var(--muted); padding:4px 0}
+.pres{font:400 12px/1.6 "IBM Plex Mono",monospace; color:var(--muted); margin-top:8px}
+.pres b{color:var(--ink); font-weight:500}
+.btns{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+#chart{display:block; width:100%; height:auto}
+.legend{display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:8px; font-size:12px; color:var(--muted)}
+.sw{display:inline-block; width:9px; height:9px; border-radius:1px; vertical-align:-1px; margin-right:5px}
+.feed{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:3px; max-height:180px; overflow:auto}
+.feed li{font:400 12px/1.5 "IBM Plex Mono",monospace; display:flex; gap:8px; padding:3px 0; border-bottom:1px solid var(--rule)}
+.feed li span:first-child{color:var(--muted); width:40px; flex:none}
+.feed li b{font-weight:500}
+.stat{display:flex; justify-content:space-between; font:400 12px/1.9 "IBM Plex Mono",monospace; color:var(--muted);}
+.stat b{color:var(--ink); font-weight:500; font-variant-numeric:tabular-nums}
+.badge{display:inline-block; font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.1em; text-transform:uppercase;
+  padding:4px 7px; border-radius:2px; background:var(--sunk); color:var(--muted)}
+.badge.live{background:var(--win); color:#fff}
+
+.notes{margin-top:26px; border-top:1px solid var(--rule); padding-top:16px;
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:22px;}
+.notes h3{margin:0 0 6px; font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);}
+.notes p{margin:0 0 8px; font-size:13px; max-width:62ch}
+.notes a{color:var(--ink); text-decoration-color:var(--rule-strong); text-underline-offset:2px}
+table{border-collapse:collapse; width:100%; font:400 12px/1.6 "IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+th,td{text-align:right; padding:3px 0 3px 10px; border-bottom:1px solid var(--rule)}
+th:first-child,td:first-child{text-align:left; padding-left:0}
+th{font-weight:500; color:var(--muted); font-size:10px; letter-spacing:.1em; text-transform:uppercase}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="plate">
+    <div>
+      <h1>The Fly's Table</h1>
+      <p class="sub">Heads-up blackjack against a measured fruit-fly brain. One seat, a queue, and a fly that
+        remembers every hand anyone has ever dealt it.</p>
+    </div>
+    <dl class="spec">
+      <div><dt>Hands taught</dt><dd id="s-hands">0</dd></div>
+      <div><dt>Fly winrate</dt><dd id="s-win">&#8212;</dd></div>
+      <div><dt>Chart match</dt><dd id="s-agree">&#8212;</dd></div>
+    </dl>
+  </header>
+
+  <div class="grid">
+    <section class="felt" id="felt" aria-live="polite">
+      <div class="scene"><canvas id="scene"></canvas>
+        <div class="scenetag">the fly &#183; and its mushroom body</div></div>
+      <div class="row">
+        <span class="label">Dealer</span>
+        <span class="tot" id="dealer-total"></span>
+        <span class="status" id="status">warming up</span>
+      </div>
+      <div class="hand" id="dealer-hand"></div>
+
+      <div class="row">
+        <span class="seatname" id="you-name">You</span>
+        <span class="tot" id="you-total"></span>
+        <span id="you-verdict"></span>
+      </div>
+      <div class="hand" id="you-hand"></div>
+
+      <div class="row">
+        <span class="seatname">The fly</span>
+        <span class="tot" id="fly-total"></span>
+        <span id="fly-verdict"></span>
+        <div class="brainrow" id="brainrow" title="the fly's value for hit / stand / double"></div>
+      </div>
+      <div class="hand" id="fly-hand"></div>
+      <div class="think" id="think"></div>
+
+      <div class="actions">
+        <button id="hit" class="primary" disabled>Hit</button>
+        <button id="stand" disabled>Stand</button>
+        <button id="double" disabled>Double</button>
+        <span class="score" id="score"></span>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="cardbox">
+        <h2>At the table <span class="badge" id="conn">offline</span></h2>
+        <div class="who">
+          <input id="name" placeholder="your name" maxlength="18" autocomplete="off">
+        </div>
+        <ul class="list" id="queue"></ul>
+        <div class="empty" id="queue-empty">Seat is open.</div>
+        <div class="btns">
+          <button id="join" class="primary">Join the queue</button>
+          <button id="leave" hidden>Leave</button>
+          <button id="stand-up" hidden>Stand up</button>
+        </div>
+        <div class="pres" id="pres"></div>
+      </div>
+
+      <div class="cardbox">
+        <h2>What the fly has learned &#8212; its choice in every spot</h2>
+        <canvas id="chart" width="600" height="420"></canvas>
+        <p class="legend">
+          <span><span class="sw" style="background:#E2893A"></span>hit</span>
+          <span><span class="sw" style="background:#2FA39A"></span>stand</span>
+          <span><span class="sw" style="background:#A971D6"></span>double</span>
+          <span>&#183; dot = disagrees with basic strategy</span>
+        </p>
+      </div>
+
+      <div class="cardbox">
+        <h2>Recent hands</h2>
+        <ul class="feed" id="feed"></ul>
+        <div class="empty" id="feed-empty">None yet.</div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="notes">
+    <div>
+      <h3>How it plays</h3>
+      <p>Every round you and the fly each get a hand against the same dealer. You act with the buttons;
+        the fly imagines each of its options, smells which one feels best, and takes it. Whoever does
+        better against the dealer wins the round. Ten rounds a seat.</p>
+    </div>
+    <div>
+      <h3>How it learns</h3>
+      <p>The fly's brain is 1,200 Kenyon cells, 97 output neurons and 332 dopaminergic neurons from
+        <a href="https://male-cns.janelia.org/">MaleCNS v1.0</a>, wired as measured. A situation becomes a
+        pattern over its projection neurons; winning fires reward neurons, losing fires punishment
+        neurons, and the synapses carrying that pattern are depressed. The brain at this table began as a fly that had played 30,000 hands alone against the dealer; every
+        hand here is one more conditioning trial, and it persists between players.</p>
+    </div>
+    <div>
+      <h3>What it learned offline</h3>
+      <table>
+        <thead><tr><th>condition, 30k hands</th><th>winrate</th></tr></thead>
+        <tbody>
+          <tr><td>untrained</td><td>&#8722;45%</td></tr>
+          <tr><td>dopamine disconnected</td><td>&#8722;46%</td></tr>
+          <tr><td>connectome + dopamine</td><td>&#8722;16%</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:8px">It learned <b>don't bust</b> &#8212; it stands on nearly everything and hits
+        only on 10 and 11 &#8212; and nothing at all about doubling. That is the first thing a person learns
+        at a blackjack table, and it is not basic strategy. The table opened with that 30,000-hand brain,
+        and every hand played here is added to it.</p>
+    </div>
+  </section>
+</div>
+
+<script src="firebase-config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

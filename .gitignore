@@ -1,0 +1,15 @@
+# the connectome itself: 107 MB, fetched by `python3 -m flybrain.mb.fetch`
+data/malecns/
+data/mb_circuit.npz
+data/*results*.json
+data/mb_tmaze.json
+
+# build and run artefacts
+__pycache__/
+*.pyc
+logs/
+node_modules/
+.firebase/
+site/test/node_modules/
+checkpoint.json
+.DS_Store

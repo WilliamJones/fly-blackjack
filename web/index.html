@@ -1,0 +1,193 @@
+<title>Connectome Fly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+:root{
+  /* the two accents are the model's own sign convention:
+     acetylcholine = excitatory = amber, GABA/glutamate = inhibitory = teal */
+  --excite:#E2893A; --inhibit:#2FA39A; --alert:#C8553D;
+  --specimen:#070A0E;                 /* the stage is always dark, like a scope */
+  --ground:#EDE9E1; --surface:#FFFFFF; --sunk:#E3DED4;
+  --ink:#16191E; --muted:#6A6C71; --rule:#D6D1C7; --rule-strong:#B9B3A6;
+  --shadow:0 1px 2px rgba(20,18,14,.07);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0E1217; --surface:#161B21; --sunk:#0A0E12;
+    --ink:#E4E8EC; --muted:#8A9198; --rule:#242B33; --rule-strong:#36404A;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0E1217; --surface:#161B21; --sunk:#0A0E12;
+  --ink:#E4E8EC; --muted:#8A9198; --rule:#242B33; --rule-strong:#36404A;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font:400 14px/1.55 "IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px; margin:0 auto; padding:22px 16px 40px;}
+
+/* ---- faceplate header ---- */
+.plate{display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px 26px; margin-bottom:14px;}
+.plate h1{
+  margin:0; font:700 clamp(19px,2.5vw,26px)/1.05 "IBM Plex Sans Condensed",sans-serif;
+  letter-spacing:.01em; text-wrap:balance;
+}
+.plate .sub{margin:2px 0 0; color:var(--muted); font-size:13px; max-width:56ch;}
+.spec{margin-left:auto; display:flex; gap:18px;}
+.spec div{text-align:right}
+.spec dt{
+  font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 3px;
+}
+.spec dd{margin:0; font:600 17px/1 "IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;}
+
+/* ---- stage ---- */
+.stage{
+  position:relative; background:var(--specimen); border:1px solid var(--rule);
+  border-radius:3px; overflow:hidden; aspect-ratio:16/10; min-height:300px;
+}
+.stage canvas{display:block; width:100%; height:100%; touch-action:none;}
+.stage .hint{
+  position:absolute; left:12px; bottom:10px; z-index:2; pointer-events:none;
+  font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.12em;
+  text-transform:uppercase; color:#7C848D;
+}
+.stage .tag{
+  position:absolute; left:12px; top:10px; z-index:2; pointer-events:none;
+  font:500 10px/1.7 "IBM Plex Mono",monospace; letter-spacing:.12em;
+  text-transform:uppercase; color:#7C848D;
+}
+.stage .tag b{color:var(--excite); font-weight:600}
+.stage[data-silenced="true"]{outline:2px solid var(--alert); outline-offset:-2px}
+.loading{
+  position:absolute; inset:0; display:grid; place-items:center; z-index:3;
+  color:#7C848D; font:500 11px/1 "IBM Plex Mono",monospace; letter-spacing:.14em;
+  text-transform:uppercase; background:var(--specimen);
+}
+
+/* ---- controls ---- */
+.controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:14px 0 0;}
+.seg{display:flex; border:1px solid var(--rule-strong); border-radius:3px; overflow:hidden;}
+.seg button{
+  appearance:none; border:0; background:var(--surface); color:var(--muted);
+  padding:7px 13px; cursor:pointer; font:500 11px/1 "IBM Plex Mono",monospace;
+  letter-spacing:.1em; text-transform:uppercase; border-right:1px solid var(--rule);
+}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink); color:var(--ground);}
+.seg button:focus-visible{outline:2px solid var(--excite); outline-offset:-2px}
+.ghost{
+  appearance:none; background:var(--surface); color:var(--ink);
+  border:1px solid var(--rule-strong); border-radius:3px; padding:7px 13px; cursor:pointer;
+  font:500 11px/1 "IBM Plex Mono",monospace; letter-spacing:.1em; text-transform:uppercase;
+}
+.ghost[aria-pressed="true"]{background:var(--alert); border-color:var(--alert); color:#fff}
+.ghost:focus-visible{outline:2px solid var(--excite); outline-offset:2px}
+
+/* ---- readout strip ---- */
+.strip{margin-top:18px; border-top:1px solid var(--rule); padding-top:14px;}
+.strip h2{
+  margin:0 0 10px; font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted);
+}
+.cells{display:grid; grid-template-columns:repeat(16,1fr); gap:3px;}
+.cell{display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0}
+.cell .bar{width:100%; height:52px; background:var(--sunk); position:relative; border-radius:1px; overflow:hidden}
+.cell .bar i{position:absolute; left:0; right:0; top:50%; height:0; display:block}
+.cell .bar u{position:absolute; left:0; right:0; top:50%; height:1px; background:var(--rule-strong)}
+.cell span{
+  font:400 9px/1 "IBM Plex Mono",monospace; color:var(--muted);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
+}
+.legend{display:flex; flex-wrap:wrap; gap:6px 18px; margin-top:12px; color:var(--muted); font-size:12px}
+.legend b{font-weight:500; color:var(--ink)}
+.sw{display:inline-block; width:9px; height:9px; border-radius:1px; vertical-align:-1px; margin-right:5px}
+
+/* ---- notes ---- */
+.notes{margin-top:26px; border-top:1px solid var(--rule); padding-top:16px;
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:22px;}
+.notes h3{
+  margin:0 0 6px; font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted);
+}
+.notes p{margin:0 0 8px; font-size:13px; max-width:62ch}
+.notes a{color:var(--ink); text-decoration-color:var(--rule-strong); text-underline-offset:2px}
+.notes a:hover{text-decoration-color:var(--excite)}
+@media (max-width:620px){
+  .cells{grid-template-columns:repeat(8,1fr)}
+  .spec{margin-left:0; width:100%; justify-content:space-between; gap:10px}
+  .spec div{text-align:left}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="plate">
+    <div>
+      <h1>Connectome Fly</h1>
+      <p class="sub">80 cells of measured <i>Drosophila</i> wiring, steering an anatomically detailed body.
+        The circuit is real. The gait is not &#8212; see below.</p>
+    </div>
+    <dl class="spec">
+      <div><dt>Cells</dt><dd id="s-cells">80</dd></div>
+      <div><dt>Contacts</dt><dd id="s-contacts">26,029</dd></div>
+      <div><dt>Score</dt><dd id="s-score">0</dd></div>
+    </dl>
+  </header>
+
+  <div class="stage" id="stage" data-silenced="false">
+    <canvas id="view"></canvas>
+    <div class="tag" id="tag"></div>
+    <div class="hint">drag to orbit &#183; scroll to zoom &#183; click the floor to move the target</div>
+    <div class="loading" id="loading">loading body &#183; 67 meshes</div>
+  </div>
+
+  <div class="controls">
+    <div class="seg" id="tasks" role="group" aria-label="Behaviour"></div>
+    <button class="ghost" id="silence" aria-pressed="false">Silence circuit</button>
+    <button class="ghost" id="physics" disabled>Play physics clip</button>
+    <button class="ghost" id="restart">Restart</button>
+  </div>
+
+  <section class="strip">
+    <h2>Descending cell activity &#8212; the 16 cells the readout can see</h2>
+    <div class="cells" id="cells"></div>
+    <p class="legend">
+      <span><b><span class="sw" style="background:var(--excite)"></span>Acetylcholine</b> modelled as excitatory (+1)</span>
+      <span><b><span class="sw" style="background:var(--inhibit)"></span>GABA / glutamate</b> modelled as inhibitory (&#8722;1)</span>
+      <span id="legend-count"></span>
+    </p>
+  </section>
+
+  <section class="notes">
+    <div>
+      <h3>What is measured</h3>
+      <p>Cell identities, neurotransmitter predictions, soma coordinates, and every directed connection
+        between these 80 cells come from <a href="https://male-cns.janelia.org/">MaleCNS v1.0</a>
+        (FlyEM / HHMI Janelia, CC BY 4.0). The body is
+        <a href="https://github.com/TuragaLab/flybody">flybody</a>, the MuJoCo model from DeepMind and Janelia &#8212;
+        its 68 segments and 102 hinge joints, decimated for the browser and posed by MuJoCo's own kinematics.</p>
+    </div>
+    <div>
+      <h3>What is invented</h3>
+      <p>The tripod gait is hand-written, as insect walking rhythm comes from the nerve cord, not the brain.
+        Cells are leaky <code>tanh</code> rate units, not spiking neurons. Mapping each sensor channel onto a
+        cell type is an engineering choice. Only the 243-parameter readout was trained; the wiring never changes.</p>
+    </div>
+    <div>
+      <h3>The control that matters</h3>
+      <p>Press <b>Silence circuit</b>. That zeroes the circuit's output and leaves everything else &#8212; the same
+        trained weights, the same gait, the same body. If the fly still behaved, the connectome would be
+        decoration. Watch it stop steering.</p>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script type="module" src="app.js"></script>
