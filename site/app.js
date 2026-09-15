@@ -1,6 +1,7 @@
 import { FlyPlayer, total, drawCard, makeRng, basicStrategy, chartCells,
          HIT, STAND, DOUBLE, ACTION_NAMES } from "./bj.js";
 import { FlyAtTable } from "./fly3d.js";
+import { BrainActivity, BrainView } from "./brain3d.js";
 
 const $ = s => document.querySelector(s);
 const ROUNDS_PER_SEAT = 10;
@@ -28,23 +29,45 @@ const [mbData, patterns] = await Promise.all([
 const fly = new FlyPlayer(mbData, patterns);
 let lifetime = { hands: 0, units: 0 };
 
-let scene = null;
-(async () => {
-  if (!window.THREE) return;
+// the brain view starts at once (it only needs mb.json); the body loads after
+let scene = null, brainView = null, activity = null;
+const readout = { pn: $("#r-pn"), kc: $("#r-kc"), dep: $("#r-dep"), danLabel: $("#r-dan"), danBar: $("#r-danbar"), seeing: $("#seeing") };
+if (window.THREE) {
   try {
-    const [flyMesh, skeleton, gestures] = await Promise.all([
-      fetch("fly.json").then(r => r.json()), fetch("skeleton.json").then(r => r.json()),
-      fetch("gestures.json").then(r => r.json())]);
-    scene = new FlyAtTable($("#scene"), { fly: flyMesh, skeleton, gestures, mb: mbData, mush: fly.mb });
-  } catch (e) { console.warn("scene unavailable", e); }
-})();
+    activity = new BrainActivity(fly.mb);
+    brainView = new BrainView($("#brain"), { mb: mbData, mush: fly.mb, activity, readout });
+  } catch (e) { console.warn("brain view unavailable", e); }
+  (async () => {
+    try {
+      const [flyMesh, skeleton, gestures] = await Promise.all([
+        fetch("fly.json").then(r => r.json()), fetch("skeleton.json").then(r => r.json()),
+        fetch("gestures.json").then(r => r.json())]);
+      scene = new FlyAtTable($("#scene"), { fly: flyMesh, skeleton, gestures, activity });
+    } catch (e) { console.warn("scene unavailable", e); }
+  })();
+}
 
+/** The projection-neuron pattern for a spot: the union of its feature codes. */
+function pnPattern(pt, soft, up, first, action) {
+  const pn = new Float32Array(fly.mb.nPn);
+  const parts = [["total", Math.min(17, Math.max(0, pt - 4))], ["upcard", up - 2], ["action", action],
+                 ["soft", soft ? 1 : 0], ["first", first ? 1 : 0]];
+  for (const [f, lvl] of parts) for (const [i, v] of patterns[f][lvl]) pn[i] = Math.max(pn[i], v);
+  return pn;
+}
 /** Light the brain for a spot: recomputed locally so spectators see it too. */
 function showSpot(spot) {
-  if (!scene || !spot) return;
+  if (!activity || !spot) return;
   const [pt, soft, up, first, action] = spot;
   fly.mb.presentDrive(fly.sit.encode(pt, soft, up, first, action), 0, false);
-  scene.showSituation(Float32Array.from(fly.mb.kc), Float32Array.from(fly.mb.mbon));
+  activity.present({ pn: pnPattern(pt, soft, up, first, action), kc: fly.mb.kc, mbon: fly.mb.mbon });
+  readout.seeing.innerHTML = `seeing <b>${pt}${soft ? " soft" : ""}</b> against a dealer <b>${up === 11 ? "A" : up}</b>` +
+    ` &#183; imagining <b>${ACTION_NAMES[action]}</b>`;
+}
+// a console hook for poking the brain without dealing a hand
+window.flyTable = { showSpot, flash: k => activity?.flash(k), fly };
+function showDepression() {
+  if (readout.dep) readout.dep.textContent = (fly.mb.depression * 100).toFixed(1);
 }
 function moodFor(status) {
   if (!status) return "idle";
@@ -126,7 +149,7 @@ const el = {
   dealerHand: $("#dealer-hand"), youHand: $("#you-hand"), flyHand: $("#fly-hand"),
   dealerTotal: $("#dealer-total"), youTotal: $("#you-total"), flyTotal: $("#fly-total"),
   youVerdict: $("#you-verdict"), flyVerdict: $("#fly-verdict"), youName: $("#you-name"),
-  think: $("#think"), status: $("#status"), score: $("#score"), brainrow: $("#brainrow"),
+  think: $("#think"), status: $("#status"), score: $("#score"), values: $("#values"),
   hit: $("#hit"), stand: $("#stand"), double: $("#double"),
 };
 
@@ -157,17 +180,17 @@ function verdictEl(net) {
   return `<span class="verdict ${cls}">${txt}</span>`;
 }
 
-function renderBrainRow(values) {
-  el.brainrow.replaceChildren();
-  if (!values) return;
-  for (const a of [HIT, STAND, DOUBLE]) {
-    const i = document.createElement("i");
-    const v = values[a];
-    const h = v == null ? 2 : Math.max(2, Math.min(26, 13 + v * 30));
-    i.style.height = h + "px";
-    i.style.background = v == null ? "#2B3A44" : ["#E2893A", "#2FA39A", "#A971D6"][a];
-    i.title = `${ACTION_NAMES[a]} ${v == null ? "n/a" : v.toFixed(3)}`;
-    el.brainrow.append(i);
+/** How good each option smells: signed bars from a centre line. */
+function renderValues(values, pick) {
+  for (const box of el.values.children) {
+    const a = +box.dataset.a, v = values ? values[a] : null;
+    const b = box.querySelector("b"), bar = box.querySelector(".bar i");
+    box.classList.toggle("off", v == null);
+    box.classList.toggle("pick", v != null && pick === a);
+    if (v == null) { b.textContent = "\u2014"; bar.style.width = "0"; bar.style.left = "50%"; continue; }
+    b.textContent = (v >= 0 ? "+" : "") + v.toFixed(2);
+    const w = Math.min(50, Math.abs(v) * 50);
+    bar.style.width = w + "%"; bar.style.left = (v >= 0 ? 50 : 50 - w) + "%";
   }
 }
 
@@ -185,11 +208,14 @@ function renderTable(s) {
   el.think.innerHTML = s.fly.thought || "";
   el.status.textContent = s.status || "";
   el.score.textContent = s.round ? `round ${s.round} of ${ROUNDS_PER_SEAT} · ${s.you.name || "you"} ${s.score.you} – fly ${s.score.fly}` : "";
-  renderBrainRow(s.fly.values);
-  if (scene) {
-    scene.setMood(moodFor(s.status));
+  renderValues(s.fly.values, s.fly.spot ? s.fly.spot[4] : null);
+  scene?.setMood(moodFor(s.status));
+  if (activity) {
     if (s.fly.spot && (s.fly.spotKey !== lastSpotKey)) { lastSpotKey = s.fly.spotKey; showSpot(s.fly.spot); }
-    if (s.fly.flash && s.fly.flashKey !== lastFlashKey) { lastFlashKey = s.fly.flashKey; scene.flash(s.fly.flash); }
+    if (s.fly.flash && s.fly.flashKey !== lastFlashKey) {
+      lastFlashKey = s.fly.flashKey; activity.flash(s.fly.flash);
+      setTimeout(showDepression, 300);        // after the lesson lands
+    }
   }
 }
 let lastSpotKey = null, lastFlashKey = null;
@@ -235,6 +261,7 @@ function refreshStats() {
   $("#s-hands").textContent = lifetime.hands.toLocaleString();
   $("#s-win").textContent = lifetime.hands >= 20 ? `${(100 * lifetime.units / lifetime.hands).toFixed(1)}%` : "—";
   $("#s-agree").textContent = `${(fly.agreement() * 100).toFixed(0)}%`;
+  showDepression();
 }
 
 // ---------------------------------------------------------------- game

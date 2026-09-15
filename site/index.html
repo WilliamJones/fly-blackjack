@@ -40,14 +40,19 @@ body{margin:0; background:var(--ground); color:var(--ink);
 
 /* ---- the table ---- */
 .felt{background:var(--felt); border:1px solid var(--rule); border-radius:3px; padding:16px 18px 14px;
-  color:#D9DEE3; position:relative; min-height:420px; display:flex; flex-direction:column; gap:14px;}
+  color:#D9DEE3; position:relative; min-height:420px; display:flex; flex-direction:column; gap:12px;}
 .felt .label{color:#7C848D}
-.scene{position:relative; height:250px; margin:-4px -6px 2px; border-radius:3px; overflow:hidden;
-  background:radial-gradient(ellipse at 55% 70%, #16261f 0%, #0b1310 70%);}
+.scene{position:relative; height:240px; margin:-4px -6px 2px; border-radius:3px; overflow:hidden;
+  background:radial-gradient(ellipse at 30% 75%, #16261f 0%, #0b1310 70%);}
 .scene canvas{display:block; width:100%; height:100%}
 .scenetag{position:absolute; left:10px; top:8px; font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.12em;
   text-transform:uppercase; color:#7C848D; pointer-events:none}
-@media (max-width:860px){.scene{height:200px}}
+/* the fly's seat: its cards sit in the scene, where it is looking */
+.flyseat{position:absolute; right:14px; top:50%; transform:translateY(-50%); width:52%; display:flex; flex-direction:column; gap:8px;}
+.flyseat .row{gap:10px}
+.flyseat .hand{min-height:72px}
+.flyseat .think{min-height:32px}
+@media (max-width:640px){.scene{height:340px} .flyseat{width:auto; left:12px; right:12px; top:auto; bottom:10px; transform:none}}
 .row{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
 .hand{display:flex; gap:6px; min-height:74px; align-items:center; flex-wrap:wrap;}
 .card{width:50px; height:72px; border-radius:4px; background:var(--card); color:var(--card-ink);
@@ -64,8 +69,6 @@ body{margin:0; background:var(--ground); color:var(--ink);
 .verdict{font:500 11px/1 "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; padding:4px 8px; border-radius:2px;}
 .verdict.win{background:var(--win); color:#fff} .verdict.lose{background:var(--alert); color:#fff}
 .verdict.push{background:#3A4A55; color:#E4E8EC}
-.brainrow{display:flex; gap:3px; margin-left:auto; align-items:flex-end; height:26px}
-.brainrow i{display:block; width:5px; background:#2B3A44; border-radius:1px}
 .think{font:500 10px/1.6 "IBM Plex Mono",monospace; color:#7C848D; letter-spacing:.06em; min-height:16px}
 .think b{color:var(--excite); font-weight:600}
 .actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:auto; align-items:center}
@@ -85,6 +88,37 @@ button.primary:hover:not(:disabled){filter:brightness(1.08)}
 
 /* ---- side panel ---- */
 .panel{display:flex; flex-direction:column; gap:12px; min-width:0}
+.lower{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; margin-top:14px;}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+
+/* ---- the brain ---- */
+.brainbox{background:var(--felt); border-color:var(--rule); color:#D9DEE3; padding:12px 13px 11px}
+.brainbox h2{color:#7C848D; display:flex; align-items:center; gap:8px}
+.brainbox h2 .hint{margin-left:auto; letter-spacing:.06em; text-transform:none; color:#5E6871}
+.brainview{position:relative; height:280px; margin:0 -3px; border-radius:3px; overflow:hidden; cursor:grab;
+  background:radial-gradient(ellipse at 50% 55%, #14211c 0%, #0b1310 72%);}
+.brainview:active{cursor:grabbing}
+.brainview canvas{display:block; width:100%; height:100%}
+.seeing{position:absolute; left:10px; bottom:8px; right:10px; font:500 10px/1.5 "IBM Plex Mono",monospace; letter-spacing:.06em;
+  color:#9AA3AB; pointer-events:none; text-wrap:balance}
+.seeing b{color:var(--excite); font-weight:600}
+.pops{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:10px}
+.pop{background:#0B1310; border-radius:2px; padding:7px 8px 6px; border-left:2px solid var(--pc)}
+.pop .label{color:#7C848D; display:block; margin-bottom:4px; letter-spacing:.1em}
+.pop .v{font:600 16px/1 "IBM Plex Mono",monospace; color:#E4E8EC; font-variant-numeric:tabular-nums}
+.pop .v small{font-size:10px; color:#7C848D; font-weight:500; margin-left:2px}
+.pop .sub{font:400 10px/1.3 "IBM Plex Mono",monospace; color:#7C848D; margin-top:3px}
+.danbar{height:3px; background:var(--dopamine); border-radius:1px; margin-top:6px; opacity:.15; transition:opacity .2s}
+.danbar.punish{background:var(--alert)}
+.values{display:flex; gap:10px; margin-top:10px; align-items:stretch}
+.val{flex:1; background:#0B1310; border-radius:2px; padding:7px 8px 6px}
+.val .label{display:flex; justify-content:space-between; color:#7C848D; margin-bottom:5px}
+.val .label b{color:#E4E8EC; font-weight:600; font-variant-numeric:tabular-nums}
+.val .bar{height:4px; background:#1C2A30; border-radius:1px; position:relative; overflow:hidden}
+.val .bar i{position:absolute; top:0; bottom:0; left:50%; width:0; background:var(--vc); transition:width .25s, left .25s}
+.val.pick{outline:1px solid var(--vc)}
+.val.off{opacity:.35}
+@media (max-width:640px){.pops{grid-template-columns:repeat(2,1fr)}}
 .cardbox{background:var(--surface); border:1px solid var(--rule); border-radius:3px; padding:12px 13px;}
 .cardbox h2{margin:0 0 9px; font:500 10px/1 "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);}
 .who{display:flex; align-items:center; gap:8px; margin-bottom:8px}
@@ -104,7 +138,7 @@ button.primary:hover:not(:disabled){filter:brightness(1.08)}
 #chart{display:block; width:100%; height:auto}
 .legend{display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:8px; font-size:12px; color:var(--muted)}
 .sw{display:inline-block; width:9px; height:9px; border-radius:1px; vertical-align:-1px; margin-right:5px}
-.feed{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:3px; max-height:180px; overflow:auto}
+.feed{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:3px; max-height:400px; overflow:auto}
 .feed li{font:400 12px/1.5 "IBM Plex Mono",monospace; display:flex; gap:8px; padding:3px 0; border-bottom:1px solid var(--rule)}
 .feed li span:first-child{color:var(--muted); width:40px; flex:none}
 .feed li b{font-weight:500}
@@ -144,9 +178,19 @@ th{font-weight:500; color:var(--muted); font-size:10px; letter-spacing:.1em; tex
   <div class="grid">
     <section class="felt" id="felt" aria-live="polite">
       <div class="scene"><canvas id="scene"></canvas>
-        <div class="scenetag">the fly &#183; and its mushroom body</div></div>
+        <div class="scenetag">the fly &#183; MaleCNS body, measured</div>
+        <div class="flyseat">
+          <div class="row">
+            <span class="seatname">The fly</span>
+            <span class="tot" id="fly-total"></span>
+            <span id="fly-verdict"></span>
+          </div>
+          <div class="hand" id="fly-hand"></div>
+          <div class="think" id="think"></div>
+        </div>
+      </div>
       <div class="row">
-        <span class="label">Dealer</span>
+        <span class="seatname">Dealer</span>
         <span class="tot" id="dealer-total"></span>
         <span class="status" id="status">warming up</span>
       </div>
@@ -159,15 +203,6 @@ th{font-weight:500; color:var(--muted); font-size:10px; letter-spacing:.1em; tex
       </div>
       <div class="hand" id="you-hand"></div>
 
-      <div class="row">
-        <span class="seatname">The fly</span>
-        <span class="tot" id="fly-total"></span>
-        <span id="fly-verdict"></span>
-        <div class="brainrow" id="brainrow" title="the fly's value for hit / stand / double"></div>
-      </div>
-      <div class="hand" id="fly-hand"></div>
-      <div class="think" id="think"></div>
-
       <div class="actions">
         <button id="hit" class="primary" disabled>Hit</button>
         <button id="stand" disabled>Stand</button>
@@ -177,6 +212,27 @@ th{font-weight:500; color:var(--muted); font-size:10px; letter-spacing:.1em; tex
     </section>
 
     <aside class="panel">
+      <div class="cardbox brainbox">
+        <h2>Its mushroom body &#183; live <span class="hint">drag to turn</span></h2>
+        <div class="brainview"><canvas id="brain"></canvas>
+          <div class="seeing" id="seeing">waiting for a hand</div></div>
+        <div class="pops">
+          <div class="pop" style="--pc:#8fa6b6"><span class="label">Projection</span>
+            <div class="v"><span id="r-pn">0</span><small>/682</small></div><div class="sub">the situation as odour</div></div>
+          <div class="pop" style="--pc:#E2893A"><span class="label">Kenyon</span>
+            <div class="v"><span id="r-kc">0</span><small>/1200</small></div><div class="sub">sparse code firing</div></div>
+          <div class="pop" style="--pc:#2FA39A"><span class="label">Output</span>
+            <div class="v"><span id="r-dep">0</span><small>% depressed</small></div><div class="sub">synapses onto 97 MBONs</div></div>
+          <div class="pop" style="--pc:#A971D6"><span class="label">Dopamine</span>
+            <div class="v" id="r-dan">quiet</div><div class="danbar" id="r-danbar"></div></div>
+        </div>
+        <div class="values" id="values" title="how good each option smells to the fly right now">
+          <div class="val off" style="--vc:#E2893A" data-a="0"><span class="label">hit <b>&#8212;</b></span><div class="bar"><i></i></div></div>
+          <div class="val off" style="--vc:#2FA39A" data-a="1"><span class="label">stand <b>&#8212;</b></span><div class="bar"><i></i></div></div>
+          <div class="val off" style="--vc:#A971D6" data-a="2"><span class="label">double <b>&#8212;</b></span><div class="bar"><i></i></div></div>
+        </div>
+      </div>
+
       <div class="cardbox">
         <h2>At the table <span class="badge" id="conn">offline</span></h2>
         <div class="who">
@@ -191,24 +247,26 @@ th{font-weight:500; color:var(--muted); font-size:10px; letter-spacing:.1em; tex
         </div>
         <div class="pres" id="pres"></div>
       </div>
-
-      <div class="cardbox">
-        <h2>What the fly has learned &#8212; its choice in every spot</h2>
-        <canvas id="chart" width="600" height="420"></canvas>
-        <p class="legend">
-          <span><span class="sw" style="background:#E2893A"></span>hit</span>
-          <span><span class="sw" style="background:#2FA39A"></span>stand</span>
-          <span><span class="sw" style="background:#A971D6"></span>double</span>
-          <span>&#183; dot = disagrees with basic strategy</span>
-        </p>
-      </div>
-
-      <div class="cardbox">
-        <h2>Recent hands</h2>
-        <ul class="feed" id="feed"></ul>
-        <div class="empty" id="feed-empty">None yet.</div>
-      </div>
     </aside>
+  </div>
+
+  <div class="lower">
+    <div class="cardbox">
+      <h2>What the fly has learned &#8212; its choice in every spot</h2>
+      <canvas id="chart" width="600" height="420"></canvas>
+      <p class="legend">
+        <span><span class="sw" style="background:#E2893A"></span>hit</span>
+        <span><span class="sw" style="background:#2FA39A"></span>stand</span>
+        <span><span class="sw" style="background:#A971D6"></span>double</span>
+        <span>&#183; dot = disagrees with basic strategy</span>
+      </p>
+    </div>
+
+    <div class="cardbox">
+      <h2>Recent hands</h2>
+      <ul class="feed" id="feed"></ul>
+      <div class="empty" id="feed-empty">None yet.</div>
+    </div>
   </div>
 
   <section class="notes">
