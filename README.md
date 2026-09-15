@@ -372,31 +372,57 @@ learning nothing.
 
 # Part five: the table
 
-`web/table/` is a live blackjack table against the fly: one seat, a queue,
+**Live at [fly-blackjack.vercel.app](https://fly-blackjack.vercel.app/).**
+
+`site/` is a live blackjack table against the fly: one seat, a queue,
 spectators watching the hand and the fly's reasoning, and a brain that
 persists between players so every hand anyone plays is one more conditioning
-trial. The chart panel shows the fly's current choice in all 260 spots against
-basic strategy, and changes as people play.
+trial. The fly sits at the table in 3D with its mushroom body above it, lighting
+up as it weighs each option. The chart panel shows the fly's current choice in
+all 260 spots against basic strategy, and changes as people play.
 
-Published as a claude.ai artifact using its shared document store (`db`) and
-presence channel (`room`). Two things to know:
+The player is a `MushroomBody` from part three with no readout at all: each
+option (hit, stand, double) is imagined as an odour, the mushroom body's output
+neurons vote on it, and the best-smelling option is taken. Winning fires the
+reward dopamine neurons, losing fires the punishment ones, and the synapses that
+carried that situation are depressed. The dealer is the environment; nothing
+else is trained.
 
-- **A page that uses the shared store is organisation-internal.** Strangers on
-  the internet cannot open it. For a public table, host it yourself: the store
-  is accessed through a small adapter (`SharedStore` in `app.js`) whose API is
-  Firestore-shaped by design, so a Firestore or Supabase backend is a swap of
-  that one class. Without any backend the page still runs as a single-player
-  table (`LocalStore`), brain kept in the browser.
-- **Leases have no release verb.** When a player stands up, the next player
-  cannot acquire the seat until the previous lease expires. The page handles
-  this by having the leaving player renew their own lease at the 1 s minimum
-  and by retrying the claim from the head of the queue -- found by running two
-  tabs against a mock of the runtime (`web/table/` had `_mock_runtime.js` during
-  development; it is not shipped).
+## Result (30,000 solo hands, then the same brain graded)
 
-The fly starts naive. To seed it with the 30,000-hand brain from part four
-instead, export it with `FlyPlayer.exportBrain()` in the browser or ask a
-Claude session with access to the artifact to write `fly/brain`.
+| condition | winrate | agreement with basic strategy |
+|---|---:|---:|
+| untrained | -45% | -- |
+| dopamine disconnected | -46% | -- |
+| connectome + dopamine | **-16%** | 52% of 260 spots |
+
+It learned **don't bust** -- it stands on nearly everything and hits only on 10
+and 11, and knows nothing about doubling. That is the first thing a person
+learns at a blackjack table, and it is not basic strategy. The table opens with
+that 30,000-hand brain (`site/brain_seed.json`) and every hand played on it is
+added to it. Poker was tried first and did not work; `flybrain/mb/poker.py`
+records why.
+
+## Hosting
+
+The page is a plain static site with one small adapter for shared state.
+`site/store-firestore.js` talks to Cloud Firestore; anonymous sign-in
+identifies players, `firestore.rules` lets only the seat holder write the live
+hand, the brain and the hand records, and a transaction guarantees one seat
+holder at a time. Without a Firebase config the same page runs as a
+single-player table with the brain kept in the browser. `site/README.md` has
+the deploy steps and `site/test/` the store tests, which run against an
+in-memory fake or the Firestore emulator.
+
+`web/table/` is the earlier version of the same page built on claude.ai's
+artifact runtime; it is organisation-internal and kept for reference.
+
+| file | what it does |
+|---|---|
+| `flybrain/mb/blackjack.py` | the game, the fly player, basic strategy and the grading |
+| `site/bj.js`, `site/mb.js` | the same, in the browser |
+| `site/fly3d.js`, `site/gestures.json` | the fly at the table and its idle gestures |
+| `site/store-firestore.js`, `site/firestore.rules` | shared state and who may write it |
 
 ---
 
